@@ -22,7 +22,7 @@
           run: |
            release=$(curl --silent "https://registry.npmjs.org/gatsby-cli/latest" | jq -r '.version')
            echo "latest_version=$release" >> $GITHUB_ENV
-           echo "latest_version=$release" >> $GITHUB_OUTPUT
+           echo "release=$release" >> $GITHUB_OUTPUT
 
         - name: Display the latest version
           run: |
@@ -43,6 +43,7 @@
               echo "No previous release of gatsby-cli is available."
             else:
               echo "The previus release of gatsby-cli is: ${{ steps.previous_release.outputs.release }}"
+            fi
             
         - name: Set image version and revision
           id: set_labels
