@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.authors="Adrian Freisinger <afreisinger@gmail.com
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Install dependencies and global npm packages
-ARG GATSBY_CLI_VERSION=5.8.0
+ARG GATSBY_CLI_VERSION=5.9.0
 ARG IMAGE_CREATED
 ARG IMAGE_REVISION
 
