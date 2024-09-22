@@ -36,12 +36,6 @@ LABEL org.opencontainers.image.documentation="https://docs.example.com/gatsby-co
 LABEL org.opencontainers.image.revision="${IMAGE_REVISION}" 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}" 
 
-# Create non-root user and set permissions
-RUN useradd -m -d /site user
-
-# Switch to non-root user
-USER user
-
 # Install dependencies and copy global npm packages from the build stage
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl procps && \
@@ -51,11 +45,17 @@ RUN apt-get update && \
 COPY --from=build /usr/local/bin /usr/local/bin
 COPY --from=build /usr/local/lib /usr/local/lib
 
+# Create non-root user and set permissions
+RUN useradd -m -d /site user
+
 WORKDIR /site
 
 # Copy setup script
 COPY entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
+
+# Switch to non-root user
+USER user
 
 # Ensure ENTRYPOINT runs with non-root user permissions
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]

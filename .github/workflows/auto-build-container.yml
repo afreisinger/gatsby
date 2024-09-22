@@ -10,7 +10,7 @@
       contents: write
     
     jobs:
-      docker:
+      build:
         runs-on: ubuntu-latest
     
         steps:
@@ -53,7 +53,7 @@
               echo "The image version of gatsby-cli is: ${{ steps.latest_release.outputs.release }}"
           
               echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
-              echo "The image revision is: $(git rev-parse HEAD)"
+              echo "The image revision is: $(git rev-parse --short HEAD)"
           
               echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')" >> $GITHUB_ENV
               echo "The image date is: $(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')"
