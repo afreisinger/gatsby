@@ -44,19 +44,20 @@
             else
               echo "The previus release of gatsby-cli is: ${{ steps.previous_release.outputs.release }}"
             fi
-            
+
+            ss
         - name: Set image version and revision
           id: set_labels
           run: |
-            echo "IMAGE_VERSION=${{ steps.latest_release.outputs.release }}" >> $GITHUB_ENV
-            echo "The image version of gatsby-cli is: ${{ env.IMAGE_VERSION }}"
-            
-            echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
-            echo "The image revision is: ${{ env.IMAGE_REVISION }}"
-            
-            echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT%Z')" >> $GITHUB_ENV
-            echo "The image date is: ${{ env.IMAGE_DATE }}"
-
+              echo "IMAGE_VERSION=${{ steps.latest_release.outputs.release }}" >> $GITHUB_ENV
+              echo "The image version of gatsby-cli is: ${{ steps.latest_release.outputs.release }}"
+          
+              echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+              echo "The image revision is: $(git rev-parse HEAD)"
+          
+              echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')" >> $GITHUB_ENV
+              echo "The image date is: $(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')"
+          
     
         - name: Set up QEMU
           uses: docker/setup-qemu-action@v3

@@ -10,6 +10,9 @@ LABEL org.opencontainers.image.licenses="MIT"
 
 # Install dependencies and global npm packages
 ARG GATSBY_CLI_VERSION=5.8.0
+ARG IMAGE_CREATED
+ARG IMAGE_REVISION
+
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git curl procps && \
@@ -27,11 +30,11 @@ LABEL org.opencontainers.image.description="Optimized container for Gatsby with 
 LABEL org.opencontainers.image.authors="Adrian Freisinger <afreisinger@gmail.com>"
 LABEL org.opencontainers.image.vendor="Adrian Freisinger"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.version="${GATSBY_CLI_VERSION}"
 LABEL org.opencontainers.image.source="https://github.com/afreisinger/gatsby-container"
 LABEL org.opencontainers.image.documentation="https://docs.example.com/gatsby-container"
-LABEL org.opencontainers.image.revision="abc123"  # Replace with actual commit hash if needed.
-LABEL org.opencontainers.image.created="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+LABEL org.opencontainers.image.revision="${IMAGE_REVISION}" 
+LABEL org.opencontainers.image.created="${IMAGE_CREATED}" 
 
 # Create non-root user and set permissions
 RUN useradd -m -d /site user
