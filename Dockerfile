@@ -13,8 +13,9 @@ LABEL org.opencontainers.image.licenses="MIT"
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git curl procps && \
     git config --global --add safe.directory /site && \
-    npm install -g gatsby-cli@5.9.0 typescript vercel netlify-cli && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    npm install -g gatsby-cli@5.9.0 typescript vercel netlify-cli
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Final stage
 FROM node:22.9.0-slim
