@@ -24,21 +24,11 @@
            echo "latest_version=$release" >> $GITHUB_ENV
            echo "latest_version=$release" >> $GITHUB_OUTPUT
 
-        - name: Display the version
+        - name: Display the latest version
           run: |
-            echo "The latest version of gatsby-cli is: ${{ env.latest_version }}"
+            echo "The latest version of gatsby-cli is: ${{ steps.latest_release.outputs.release }}"
 
-        - name: Set image version and revision
-          id: set_labels
-          run: |
-            echo "IMAGE_VERSION=$release" >> $GITHUB_ENV
-            echo "The image version of gatsby-cli is: ${{ env.IMAGE_VERSION }}"
-            echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
-            echo "The image revision is: ${{ env.IMAGE_REVISION }}"
-            echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT%Z')" >> $GITHUB_ENV
-            echo "The image date is: ${{ env.IMAGE_DATE }}"
-
-    
+        
         - name: Get previous release tag
           id: previous_release
           env:
@@ -46,6 +36,24 @@
             repository: "afreisinger/gatsby"
             type: "stable"
           run: echo release=$(curl --silent "https://api.github.com/repos/afreisinger/gatsby/releases/latest" | jq -r '.tag_name' ) >> $GITHUB_OUTPUT
+        
+        - name: Display the previus realease tag
+          run: |
+            if [ "${{ steps.previous_release.outputs.release }}" == "null" ]; then
+              echo "No previous release of gatsby-cli is available."
+            else:
+              echo "The previus release of gatsby-cli is: ${{ steps.previous_release.outputs.release }}"
+            
+        - name: Set image version and revision
+          id: set_labels
+          run: |
+            echo "IMAGE_VERSION=$(echo $release)" >> $GITHUB_ENV
+            echo "The image version of gatsby-cli is: ${{ env.IMAGE_VERSION }}"
+            echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+            echo "The image revision is: ${{ env.IMAGE_REVISION }}"
+            echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT%Z')" >> $GITHUB_ENV
+            echo "The image date is: ${{ env.IMAGE_DATE }}"
+
     
         - name: Set up QEMU
           uses: docker/setup-qemu-action@v3
