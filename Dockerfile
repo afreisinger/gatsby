@@ -1,5 +1,7 @@
 FROM node:22.9.0-slim AS build
 
+ARG GATSBY_VERSION=5.9.0
+
 # OCI Labels for the build stage
 LABEL stage="build"
 LABEL org.opencontainers.image.title="Gatsby Build Container"
@@ -12,13 +14,15 @@ LABEL org.opencontainers.image.licenses="MIT"
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git curl procps && \
     git config --global --add safe.directory /site && \
-    npm install -g gatsby-cli@5.9.0 typescript vercel netlify-cli npm@latest && \
+    npm install -g gatsby-cli@${GATSBY_VERSION} typescript vercel netlify-cli && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Final stage
 FROM node:22.9.0-slim
 
 # Install dependencies and global npm packages
+ARG GATSBY_VERSION=5.9.0
+
 ARG IMAGE_CREATED
 ARG IMAGE_REVISION
 
@@ -29,7 +33,7 @@ LABEL org.opencontainers.image.description="Optimized container for Gatsby with 
 LABEL org.opencontainers.image.authors="Adrian Freisinger <afreisinger@gmail.com>"
 LABEL org.opencontainers.image.vendor="Adrian Freisinger"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="5.9.0"
+LABEL org.opencontainers.image.version="${GATSBY_VERSION}" 
 LABEL org.opencontainers.image.source="https://github.com/afreisinger/gatsby-container"
 LABEL org.opencontainers.image.documentation="https://docs.example.com/gatsby-container"
 LABEL org.opencontainers.image.revision="${IMAGE_REVISION}" 
