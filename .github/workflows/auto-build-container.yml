@@ -41,7 +41,7 @@
           run: |
             if [ "${{ steps.previous_release.outputs.release }}" == "null" ]; then
               echo "No previous release of gatsby-cli is available."
-            else:
+            else
               echo "The previus release of gatsby-cli is: ${{ steps.previous_release.outputs.release }}"
             fi
             
