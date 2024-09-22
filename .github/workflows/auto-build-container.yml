@@ -47,10 +47,12 @@
         - name: Set image version and revision
           id: set_labels
           run: |
-            echo "IMAGE_VERSION=$(echo $release)" >> $GITHUB_ENV
+            echo "IMAGE_VERSION=${{ steps.latest_release.outputs.release }}" >> $GITHUB_ENV
             echo "The image version of gatsby-cli is: ${{ env.IMAGE_VERSION }}"
+            
             echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
             echo "The image revision is: ${{ env.IMAGE_REVISION }}"
+            
             echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT%Z')" >> $GITHUB_ENV
             echo "The image date is: ${{ env.IMAGE_DATE }}"
 
