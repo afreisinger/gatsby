@@ -22,6 +22,7 @@
           run: |
            release=$(curl --silent "https://registry.npmjs.org/gatsby-cli/latest" | jq -r '.version')
            echo "latest_version=$release" >> $GITHUB_ENV
+           echo "latest_version=$release" >> $GITHUB_OUTPUT
 
         - name: Display the version
           run: |
@@ -31,8 +32,11 @@
           id: set_labels
           run: |
             echo "IMAGE_VERSION=$release" >> $GITHUB_ENV
+            echo "The image version of gatsby-cli is: ${{ env.IMAGE_VERSION }}"
             echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+            echo "The image revision is: ${{ env.IMAGE_REVISION }}"
             echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT%Z')" >> $GITHUB_ENV
+            echo "The image date is: ${{ env.IMAGE_DATE }}"
 
     
         - name: Get previous release tag
