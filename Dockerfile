@@ -16,7 +16,7 @@ RUN apt-get update && \
 
 RUN npm install -g gatsby-cli@5.9.0 
 
-RUN npm install -g typescript vercel netlify-cli
+RUN npm install -g typescript@latest vercel@latest netlify-cli@latest
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
