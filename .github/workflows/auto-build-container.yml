@@ -77,8 +77,7 @@
         - name: Build and push
           uses: docker/build-push-action@v6
           with:
-            context: "{{defaultContext}}"
-            platforms: linux/arm/v7,linux/arm64/v8,linux/amd64
+            platforms: linux/arm64,linux/amd64,linux/arm/v7
             push: true
             tags: afreisinger/gatsby:latest,afreisinger/gatsby:${{ steps.latest_release.outputs.release }}
           if: ${{ steps.latest_release.outputs.release != steps.previous_release.outputs.release }}
