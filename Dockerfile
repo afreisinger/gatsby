@@ -15,7 +15,8 @@ RUN apt-get update && \
     git config --global --add safe.directory /site
 
 RUN npm install -g gatsby-cli@5.9.0 
-RUN typescript vercel netlify-cli
+
+RUN npm install -g typescript vercel netlify-cli
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
