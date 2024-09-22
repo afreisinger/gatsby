@@ -1,5 +1,4 @@
 FROM node:22.9.0-slim AS build
-
 ARG GATSBY_VERSION=5.9.0
 
 # OCI Labels for the build stage
@@ -14,7 +13,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git curl procps && \
     git config --global --add safe.directory /site && \
-    npm install -g gatsby-cli@${GATSBY_VERSION} typescript vercel netlify-cli && \
+    npm install -g gatsby-cli@$GATSBY_VERSION typescript vercel netlify-cli && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Final stage
@@ -22,7 +21,6 @@ FROM node:22.9.0-slim
 
 # Install dependencies and global npm packages
 ARG GATSBY_VERSION=5.9.0
-
 ARG IMAGE_CREATED
 ARG IMAGE_REVISION
 
