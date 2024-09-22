@@ -1,4 +1,6 @@
 # Stage 1: Build stage
+ARG GATSBY_CLI_VERSION=5.9.0
+
 FROM node:22.9.0-slim AS build
 
 # OCI Labels for the build stage
@@ -9,10 +11,7 @@ LABEL org.opencontainers.image.authors="Adrian Freisinger <afreisinger@gmail.com
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Install dependencies and global npm packages
-ARG GATSBY_CLI_VERSION=5.9.0
-ARG IMAGE_CREATED
-ARG IMAGE_REVISION
-
+ARG GATSBY_CLI_VERSION
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git curl procps && \
@@ -22,6 +21,11 @@ RUN apt-get update && \
 
 # Stage 2: Final stage
 FROM node:22.9.0-slim
+
+# Install dependencies and global npm packages
+ARG GATSBY_CLI_VERSION
+ARG IMAGE_CREATED
+ARG IMAGE_REVISION
 
 # OCI Labels for the final image
 LABEL stage="final"
