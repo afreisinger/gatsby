@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  gatsby:
+    image: afreisinger/gatsby
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000 # Use environment variables for ports
+    volumes:
+      - .:/site # Mount the current directory in the container
+    environment:
+      - NODE_ENV=development
+    command: "develop" # Default command when starting the container with `docker-compose up`

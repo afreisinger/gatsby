@@ -1,0 +1,23 @@
+{
+    "extends": [
+      "config:base",
+      "group:allNonMajor"
+    ],
+    "timezone": "Buenos_Aires/Argentina",
+    "packageRules": [
+      {
+        "matchDatasources": ["npm"],
+        "matchPackageNames": ["gatsby-cli"],
+        "enabled": true
+      }
+    ],
+    "versioning": {
+        "docker": {
+          "version": ">=5.8.0"
+        }
+    },
+    "assignees": [
+        "afreisinger"
+    ]
+  }
+  
