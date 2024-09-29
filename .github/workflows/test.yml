@@ -51,10 +51,6 @@ jobs:
       
       - name: Get latest release of gatsby-cli
         id: latest_release
-        # run: |
-        #    release=$(curl --silent "https://registry.npmjs.org/gatsby-cli/latest" | jq -r '.version')
-        #    echo "latest_version=$release" >> $GITHUB_ENV
-        #    echo "version=$release" >> $GITHUB_OUTPUT
         run: |
            release=$(curl --silent "https://registry.npmjs.org/gatsby-cli/latest" | jq -r '.version')
            echo "version=$release" >> $GITHUB_OUTPUT
@@ -70,10 +66,6 @@ jobs:
             token: ${{ secrets.GITHUB_TOKEN }}
             repository: "afreisinger/gatsby"
             type: "stable"
-        # run: | 
-        #     release=$(curl --silent "https://api.github.com/repos/afreisinger/gatsby/releases/latest" | jq -r '.tag_name' ) 
-        #     echo "previous_version=$release" >> $GITHUB_ENV
-        #     echo "version=$release" >> $GITHUB_OUTPUT
         run: | 
              release=$(curl --silent "https://api.github.com/repos/afreisinger/gatsby/releases/latest" | jq -r '.tag_name' ) 
              echo "version=$release" >> $GITHUB_OUTPUT
@@ -93,11 +85,14 @@ jobs:
               echo "IMAGE_VERSION=${{ steps.latest_release.outputs.version }}" >> $GITHUB_ENV
               echo "The image version of gatsby-cli is: ${{ steps.latest_release.outputs.version }}"
             
-              echo "IMAGE_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+              echo "IMAGE_REVISION=$(git rev-parse short HEAD)" >> $GITHUB_ENV
               echo "The image revision is: $(git rev-parse --short HEAD)"
             
               echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')" >> $GITHUB_ENV
-              echo "The image date is: $(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')"  
+              echo "The image date is: $(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')" 
+              
+              echo "COMMIT_HASH=${{ github.sha }}" >> $GITHUB_ENV
+              echo "The commit hash is: ${{ github.sha }}"
 
       - name: Build and push by digest
         id: build
@@ -105,6 +100,10 @@ jobs:
         with:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            COMMIT_HASH=${{ env.COMMIT_HASH }}
+            IMAGE_VERSION=${{ env.IMAGE_VERSION }}
+            IMAGE_CREATED=${{ env.IMAGE_CREATED }}
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
        
       - name: Create release
@@ -168,7 +167,10 @@ jobs:
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *) \
+            -t ${{ env.REGISTRY_IMAGE }}:${{ env.IMAGE_REVISION }} \
+            -t ${{ env.REGISTRY_IMAGE }}:latest
+
       
       - name: Inspect image
         run: |
