@@ -1,7 +1,7 @@
 FROM node:22.9.0-slim AS build
 
-ARG GATSBY_VERSION=5.9.0
-ENV GATSBY_VERSION=${GATSBY_VERSION}
+#ARG GATSBY_VERSION=5.9.0
+ENV GATSBY_VERSION=${IMAGE_VERSION}
 
 # OCI Labels for the build stage
 LABEL stage="build"
@@ -22,10 +22,15 @@ RUN apt-get update && \
 FROM node:22.9.0-slim
 
 # Install dependencies and global npm packages
-ARG GATSBY_VERSION=5.9.0
-ENV GATSBY_VERSION=${GATSBY_VERSION}
+#ARG GATSBY_VERSION=5.9.0
+ARG IMAGE_VERSION
+ARG IMAGE_REVISION 
+ARG COMMIT_HASH
 ARG IMAGE_CREATED
-ARG IMAGE_REVISION
+ENV GATSBY_VERSION=${IMAGE_VERSION}
+
+
+
 
 # OCI Labels for the final image
 LABEL stage="final"
@@ -34,11 +39,13 @@ LABEL org.opencontainers.image.description="Optimized container for Gatsby with 
 LABEL org.opencontainers.image.authors="Adrian Freisinger <afreisinger@gmail.com>"
 LABEL org.opencontainers.image.vendor="Adrian Freisinger"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="${GATSBY_VERSION}" 
+LABEL org.opencontainers.image.version="${IMAGE_VERSION}" 
 LABEL org.opencontainers.image.source="https://github.com/afreisinger/gatsby-container"
 LABEL org.opencontainers.image.documentation="https://docs.example.com/gatsby-container"
 LABEL org.opencontainers.image.revision="${IMAGE_REVISION}" 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}" 
+LABEL org.opencontainers.image.commit_hash="${COMMIT_HASH}"
+
 
 # Install dependencies and copy global npm packages from the build stage
 RUN apt-get update && \

@@ -86,6 +86,8 @@ jobs:
               echo "The image version of gatsby-cli is: ${{ steps.latest_release.outputs.version }}"
             
               echo "IMAGE_REVISION=$(git rev-parse short HEAD)" >> $GITHUB_ENV
+              echo "IMAGE_REVISION=$(git rev-parse short HEAD)" >> $GITHUB_OUTPUT
+
               echo "The image revision is: $(git rev-parse --short HEAD)"
             
               echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')" >> $GITHUB_ENV
@@ -168,7 +170,8 @@ jobs:
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *) \
-            -t ${{ env.REGISTRY_IMAGE }}:${{ env.IMAGE_REVISION }} \
+            -t ${{ env.REGISTRY_IMAGE }}:${{ steps.set_labels.outputs.IMAGE_REVISION }} \
+            -t ${{ env.REGISTRY_IMAGE }}:${{ steps.latest_release.outputs.version }}
             -t ${{ env.REGISTRY_IMAGE }}:latest
 
       
