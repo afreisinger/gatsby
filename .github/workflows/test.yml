@@ -106,7 +106,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           #outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push=true
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push=false
           tags: |
                   ${{ env.REGISTRY_IMAGE }}:${{ env.IMAGE_VERSION }}
                   ${{ env.REGISTRY_IMAGE }}:${{ env.IMAGE_REVISION }}
@@ -120,7 +120,7 @@ jobs:
           tag_name: ${{ steps.latest_release.outputs.version }}
           name: "${{ steps.latest_release.outputs.version }}"
           body: |
-            Changelog found on [pi-hole github](https://github.com/afreisinger/gatsby/releases), please read the changes before updating.
+            Changelog found on [gatsby github](https://github.com/afreisinger/gatsby/releases), please read the changes before updating.
             You can update the docker image with:
             ```
             docker compose pull
