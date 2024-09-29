@@ -1,5 +1,5 @@
 ---
-name: ci
+name: CI
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
           - linux/amd64
           - linux/arm64
     steps:
-      - name: Prepare
+      - name: Prepare Environment
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
@@ -117,8 +117,8 @@ jobs:
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.latest_release.outputs.release }}
-          name: "${{ steps.latest_release.outputs.release }}"
+          tag_name: ${{ steps.latest_release.outputs.version }}
+          name: "${{ steps.latest_release.outputs.version }}"
           body: |
             Changelog found on [pi-hole github](https://github.com/afreisinger/gatsby/releases), please read the changes before updating.
             You can update the docker image with:
