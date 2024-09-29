@@ -3,6 +3,12 @@ name: ci
 
 on:
   push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+    contents: write
 
 env:
   REGISTRY_IMAGE: afreisinger/gatsby
@@ -45,11 +51,15 @@ jobs:
       
       - name: Get latest release of gatsby-cli
         id: latest_release
+        # run: |
+        #    release=$(curl --silent "https://registry.npmjs.org/gatsby-cli/latest" | jq -r '.version')
+        #    echo "latest_version=$release" >> $GITHUB_ENV
+        #    echo "version=$release" >> $GITHUB_OUTPUT
         run: |
            release=$(curl --silent "https://registry.npmjs.org/gatsby-cli/latest" | jq -r '.version')
-           echo "latest_version=$release" >> $GITHUB_ENV
            echo "version=$release" >> $GITHUB_OUTPUT
       
+
       - name: Display the latest version
         run: |
             echo "The latest version of gatsby-cli is: ${{ steps.latest_release.outputs.version}}"
@@ -60,10 +70,14 @@ jobs:
             token: ${{ secrets.GITHUB_TOKEN }}
             repository: "afreisinger/gatsby"
             type: "stable"
+        # run: | 
+        #     release=$(curl --silent "https://api.github.com/repos/afreisinger/gatsby/releases/latest" | jq -r '.tag_name' ) 
+        #     echo "previous_version=$release" >> $GITHUB_ENV
+        #     echo "version=$release" >> $GITHUB_OUTPUT
         run: | 
-            release=$(curl --silent "https://api.github.com/repos/afreisinger/gatsby/releases/latest" | jq -r '.tag_name' ) 
-            echo "previous_version=$release" >> $GITHUB_ENV
-            echo "version=$release" >> $GITHUB_OUTPUT
+             release=$(curl --silent "https://api.github.com/repos/afreisinger/gatsby/releases/latest" | jq -r '.tag_name' ) 
+             echo "version=$release" >> $GITHUB_OUTPUT
+
 
       - name: Display the previus realease tag
         run: |
@@ -85,9 +99,6 @@ jobs:
               echo "IMAGE_CREATED=$(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')" >> $GITHUB_ENV
               echo "The image date is: $(TZ='America/Sao_Paulo' date +'%Y-%m-%d %H:%M GMT-3')"  
 
-
-
-
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
@@ -97,9 +108,24 @@ jobs:
           #outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push=true
           tags: |
-                  ${{ env.REGISTRY_IMAGE }}:${{ github.sha }}
-                  ${{ env.REGISTRY_IMAGE }}:${{ steps.latest_release.outputs.version }}
+                  ${{ env.REGISTRY_IMAGE }}:${{ env.IMAGE_VERSION }}
+                  ${{ env.REGISTRY_IMAGE }}:${{ env.IMAGE_REVISION }}
                   ${{ env.REGISTRY_IMAGE }}:latest
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.latest_release.outputs.release }}
+          name: "${{ steps.latest_release.outputs.release }}"
+          body: |
+            Changelog found on [pi-hole github](https://github.com/afreisinger/gatsby/releases), please read the changes before updating.
+            You can update the docker image with:
+            ```
+            docker compose pull
+            docker compose up -d
+            ```            
       
       - name: Export digest
         run: |
