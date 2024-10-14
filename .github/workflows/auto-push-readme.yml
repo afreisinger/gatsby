@@ -1,0 +1,25 @@
+name: Push README to Docker Hub
+'on':
+  push:
+    branches:
+      - main
+    paths:
+      - README.md
+      - .github/workflows/auto-push-readme.yml
+jobs:
+  PushContainerReadme:
+    runs-on: ubuntu-latest
+    name: Push README to Docker Hub
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v4
+      - name: push README to Dockerhub
+        uses: christian-korneck/update-container-description-action@v1
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKER_TOKEN }}
+        with:
+          destination_container_repo: afreisinger/gatsby
+          provider: dockerhub
+          short_description: 'Gatsby Docker image with steroids'
+          readme_file: 'README.md'

@@ -1,0 +1,208 @@
+---
+name: Build and publish container
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/auto-build-container.yml'
+
+permissions:
+    contents: write
+
+env:
+  REGISTRY_IMAGE: afreisinger/gatsby
+
+jobs:
+  build_multi:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      version: ${{ steps.latest_release.outputs.version }}
+      build_decision: ${{ steps.build_decision.outputs.build_decision }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+    steps:
+         
+      - name: Get latest release of gatsby-cli
+        id: latest_release
+        run: |
+             release=$(curl --silent "https://api.github.com/repos/gatsbyjs/gatsby/releases/latest" | jq -r '.tag_name' | sed 's/gatsby@//')
+             echo "version=$release" >> $GITHUB_OUTPUT
+      
+      - name: Display the latest version
+        run: |
+             echo "The latest version of gatsby-cli is: ${{ steps.latest_release.outputs.version}}"
+      
+             
+      - name: Get previous release tag
+        id: previous_release
+        env:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            repository: "afreisinger/gatsby"
+            type: "stable"
+        run: | 
+              release=$(curl --silent "https://api.github.com/repos/afreisinger/gatsby/releases/latest" | jq -r '.tag_name' | sed 's/gatsby@//' ) 
+              echo "version=$release" >> $GITHUB_OUTPUT
+
+      - name: Display the previus realease tag
+        run: |
+              if [ "${{ steps.previous_release.outputs.version }}" == "null" ]; then
+                echo "No previous release of gatsby-cli is available."
+              else
+                echo "The previus release of gatsby-cli is: ${{ steps.previous_release.outputs.version }}"
+              fi      
+      
+      - name: Determine if Build is Necessary
+        id: build_decision
+        run: |
+            if [ "${{ steps.latest_release.outputs.version }}" != "${{ steps.previous_release.outputs.version }}" ]; then
+                echo "BUILD_REQUIRED=true" >> $GITHUB_ENV
+                echo "BUILD_REQUIRED=true" >> $GITHUB_OUTPUT
+            else
+                echo "BUILD_REQUIRED=false" >> $GITHUB_ENV
+                echo "BUILD_REQUIRED=false" >> $GITHUB_OUTPUT
+            fi
+      
+      - name: Prepare Environment
+        if: env.BUILD_REQUIRED == 'true'
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: Docker meta
+        id: meta
+        if: env.BUILD_REQUIRED == 'true'
+        uses: docker/metadata-action@v5
+        with:
+            images: ${{ env.REGISTRY_IMAGE }}
+
+      - name: Check labels
+        if: env.BUILD_REQUIRED == 'true'
+        run: |
+          echo "Labels: ${{ steps.meta.outputs.labels }}"     
+      
+      - name: Set up QEMU
+        if: env.BUILD_REQUIRED == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: env.BUILD_REQUIRED == 'true'
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        if: env.BUILD_REQUIRED == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME  }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      
+      - name: Build and push by digest
+        id: build
+        if: env.BUILD_REQUIRED == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.platform }}
+          build-args: |
+                      IMAGE_VERSION=${{ steps.latest_release.outputs.version }}
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        if: env.BUILD_REQUIRED == 'true'
+        run: |
+            mkdir -p /tmp/digests
+            digest="${{ steps.build.outputs.digest }}"
+            touch "/tmp/digests/${digest#sha256:}"
+        
+      - name: Upload digest
+        if: env.BUILD_REQUIRED == 'true'  
+        uses: actions/upload-artifact@v4
+        with:
+            name: digests-${{ env.PLATFORM_PAIR }}
+            path: /tmp/digests/*
+            if-no-files-found: error
+            retention-days: 1
+         
+      - name: Create release
+        if: env.BUILD_REQUIRED == 'true'
+        uses: softprops/action-gh-release@v2
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.latest_release.outputs.version }}
+          name: "${{ steps.latest_release.outputs.version }}"
+          body: |
+            Changelog found on [gatsby github](https://github.com/afreisinger/gatsby/releases), please read the changes before updating.
+            You can update the docker image with:
+            ```
+            docker compose pull
+            docker compose up -d
+            ```
+            Please, visit [dockerhub](https://hub.docker.com/repository/docker/afreisinger/gatsby/general), for more information.   
+      
+  merge:
+    runs-on: ubuntu-latest
+    needs:
+      - build_multi
+         
+    steps:
+      - name: Download digests
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+      
+      - name: Set up Docker Buildx
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+
+      - name: Check labels
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        run: |
+            echo "Labels: ${{ steps.meta.outputs.labels }}"
+           
+      - name: Login to Docker Hub
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+             
+      - name: List digests
+        if: ${{ needs.build_multi.outputs.build_decision }}== 'true'
+        run: ls -l /tmp/digests
+  
+      - name: Show digests
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        run: cat /tmp/digests/*
+            
+      - name: Create manifest list and push
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        working-directory: /tmp/digests
+        run: |
+          existing_tags=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          additional_tags="-t ${{ env.REGISTRY_IMAGE }}:latest -t ${{ env.REGISTRY_IMAGE }}:${{ needs.build_multi.outputs.version }} -t ${{ env.REGISTRY_IMAGE }}:${{ github.sha }}"
+          all_tags="$existing_tags $additional_tags"
+          digest=$(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+          echo "Tags: $all_tags, Digest: $digest"
+          docker buildx imagetools create $all_tags $digest
+       
+      - name: Inspect image
+        if: ${{ needs.build_multi.outputs.build_decision }} == 'true'
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
